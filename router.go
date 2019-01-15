@@ -10,9 +10,9 @@ import (
 	"noxue/api/v1"
 )
 
-
 // 不需要授权的路由组
 var r1 *gin.RouterGroup
+
 // 需要授权的路由组
 var ar1 *gin.RouterGroup
 
@@ -27,14 +27,18 @@ func init() {
 	r1.GET("/captcha", v1.ApiCaptcha.Create) // 获取图片验证码
 	r1.GET("/code", v1.ApiCode.Create)       // 获取邮箱或手机验证码
 
-	r1.GET("/groups",v1.ApiUser.GroupList)
+	r1.GET("/groups", v1.ApiUser.GroupList)
 	r1.POST("/users", v1.ApiUser.Register)
 	//r1.POST("/token", v1.ApiUser.Login)  // 创建一个token，登陆
 	//r1.PUT("/token", v1.ApiUser.Refresh) // 更新token，刷新token信息
+
+	r1.POST("/adcreate", v1.ApiAd.AdCreate)
+	r1.PUT("/adupdate/:id", v1.ApiAd.AdUpdate)
+	r1.DELETE("/addelete/:id", v1.ApiAd.AdRemoveById)
+
 	ar1.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{"test": 1})
 	})
-
 
 }
 
@@ -50,7 +54,6 @@ type User struct {
 	Nick string
 	Name string
 }
-
 
 func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {

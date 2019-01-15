@@ -56,6 +56,18 @@ func (AdDaoType) AdSelect(condition ormgo.M, fields map[string]bool, sorts []str
 	return
 }
 
+// 获取广告ById
+func (AdDaoType) AdFindById(id string) (ad model.Ad, err error) {
+	err = ormgo.FindById(id, nil, &ad)
+	return
+}
+
+//获取广告ByName
+func (AdDaoType) AdFindByName(name string) (ad model.Ad, err error) {
+	err = ormgo.FindOne(ormgo.M{"name": name}, nil, &ad)
+	return
+}
+
 //更新广告的内容ById
 func (AdDaoType) AdEditById(id string, ad *model.Ad) (err error) {
 	defer func() {
@@ -85,18 +97,6 @@ func (AdDaoType) AdEditById(id string, ad *model.Ad) (err error) {
 	})
 	return
 
-}
-
-// 获取广告ById
-func (AdDaoType) AdFindById(id string) (ad model.Ad, err error) {
-	err = ormgo.FindById(id, nil, &ad)
-	return
-}
-
-//根据名字查找广告
-func (AdDaoType) AdFindByName(name string) (ad model.Ad, err error) {
-	err = ormgo.FindOne(ormgo.M{"name": name}, nil, &ad)
-	return
 }
 
 //统计广告个数
