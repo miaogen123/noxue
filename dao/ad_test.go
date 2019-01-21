@@ -20,7 +20,7 @@ func TestAdDaoType_AdInsert(t *testing.T) {
 	name := "testtest123456"
 	title := "test"
 	content := "test"
-	n, err := AdDao.AdCount(ormgo.M{"name": "testtest123456"})
+	n, err := AdDao.AdCount(ormgo.M{"name": name})
 	if n > 0 {
 		panic("记录已存在")
 	}
@@ -34,7 +34,10 @@ func TestAdDaoType_AdInsert(t *testing.T) {
 func TestAdDaoType_AdSelect(t *testing.T) {
 	res, err := AdDao.AdSelect(ormgo.M{
 		"name": "testtest123456",
+		//wrong selection
+		//}, map[string]bool{"title": true}, nil, 0, 0)
 	}, nil, nil, 0, 0)
+
 	utils.CheckErr(err)
 	if len(res) <= 0 {
 		t.Error("DAO中的select出现错误")
@@ -48,7 +51,7 @@ func TestAdDaoType_AdSelect(t *testing.T) {
 
 func TestAdDaoType_AdEditById(t *testing.T) {
 	//TODO:修改下面的id
-	id := "5c3b5daf844ee3e1ff05f2b0"
+	id := "5c3ed86a844ee3e1ff0682ea"
 	var ad model.Ad
 	ad.Name = "123test"
 	ad.Title = "123"
@@ -64,10 +67,8 @@ func TestAdDaoType_AdEditById(t *testing.T) {
 	return
 }
 
-//FIXME::对象的ID的比较
 func TestAdDaoType_AdFindById(t *testing.T) {
-	//TODO:修改下面的id
-	id := "5c3b5daf844ee3e1ff05f2b0"
+	id := ""
 	ad, err := AdDao.AdFindById(id)
 	utils.CheckErr(err)
 	fid := ad.Id.Hex()
@@ -77,8 +78,7 @@ func TestAdDaoType_AdFindById(t *testing.T) {
 }
 
 func TestAdDaoType_AdRemoveById(t *testing.T) {
-	//TODO:修改下面的id
-	id := "5c3b5daf844ee3e1ff05f2b0"
+	id := "5c3ed86a844ee3e1ff0682ea"
 	err := AdDao.AdRemoveById(id, false)
 	utils.CheckErr(err)
 	return

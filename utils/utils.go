@@ -71,7 +71,7 @@ func Uuid() string {
 }
 
 // 从url种解析出查询参数
-func ParseSelectParam(c *gin.Context) (sort []string, field map[string]bool, filter map[string]interface{}, ids []string,page int, size int, err error) {
+func ParseSelectParam(c *gin.Context) (sort []string, field map[string]bool, filter map[string]interface{}, ids []string, page int, size int, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			glog.Error(e)
@@ -106,12 +106,29 @@ func ParseSelectParam(c *gin.Context) (sort []string, field map[string]bool, fil
 		err = json.Unmarshal([]byte(idsParam), &ids)
 		CheckErr(err)
 	}
-	if pageParam!=""{
+	if pageParam != "" {
 		page, err = strconv.Atoi(pageParam)
 		CheckErr(err)
 	}
-	if sizeParam!=""{
+	if sizeParam != "" {
 		size, err = strconv.Atoi(sizeParam)
+		CheckErr(err)
+	}
+	return
+}
+
+func ParseFilterParams(c *gin.Context) (filter map[string][]string, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			glog.Error(e)
+			err = errors.New("携带的参数格式不正确，请仔细检查")
+		}
+	}()
+
+	filterParam := c.Query("fieldsvalue")
+	filter = make(map[string][]string)
+	if filterParam != "" {
+		err := json.Unmarshal([]byte(filterParam), &filter)
 		CheckErr(err)
 	}
 	return

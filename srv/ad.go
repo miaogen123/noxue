@@ -19,7 +19,6 @@ var SrvAd AdService
 type AdService struct {
 }
 
-//留空
 func init() {
 	initAd()
 }
@@ -86,6 +85,12 @@ func (AdService) AdSelect(condition map[string]interface{}, fileds map[string]bo
 	return
 }
 
+//根据ID更新广告
+func (AdService) AdUpdateById(id string, ad *model.Ad) (err error) {
+	err = dao.AdDao.AdEditById(id, ad)
+	return
+}
+
 //删除广告
 func (AdService) AdRemoveById(id string) (err error) {
 	err = dao.AdDao.AdRemoveById(id, true)
@@ -102,20 +107,15 @@ func (AdService) AdRemoveByName(name string) (err error) {
 	n, err := dao.AdDao.AdCount(ormgo.M{"name": name})
 	utils.CheckErr(err)
 	if n < 1 {
-		panic("该广告不存在")
+		err = errors.New("该广告不存在")
 	} else if n > 1 {
 		glog.Error("内部错误，数据库中存在同名的多个ad")
-		panic("内部错误，数据库中存在同名的多个ad")
+		err = errors.New("内部错误，数据库中存在同名的多个ad")
 	}
+	utils.CheckErr(err)
 	ad, err := dao.AdDao.AdFindByName(name)
 	utils.CheckErr(err)
 	err = dao.AdDao.AdRemoveById(ad.Id.Hex(), true)
 	utils.CheckErr(err)
-	return
-}
-
-//根据ID更新广告
-func (AdService) AdUpdateById(id string, ad *model.Ad) (err error) {
-	err = dao.AdDao.AdEditById(id, ad)
 	return
 }

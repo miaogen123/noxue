@@ -32,9 +32,12 @@ func init() {
 	//r1.POST("/token", v1.ApiUser.Login)  // 创建一个token，登陆
 	//r1.PUT("/token", v1.ApiUser.Refresh) // 更新token，刷新token信息
 
-	r1.POST("/adcreate", v1.ApiAd.AdCreate)
-	r1.PUT("/adupdate/:id", v1.ApiAd.AdUpdate)
-	r1.DELETE("/addelete/:id", v1.ApiAd.AdRemoveById)
+	r1.POST("/ad", v1.ApiAd.AdCreate)
+	r1.GET("/ad/:id", v1.ApiAd.AdGetOne)
+	r1.GET("/ad", v1.ApiAd.AdGetList)
+	r1.PUT("/ad/:id", v1.ApiAd.AdUpdate)
+	r1.DELETE("/ad/:id", v1.ApiAd.AdRemoveById)
+	r1.DELETE("/ad", v1.ApiAd.AdRemoveByIds)
 
 	ar1.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{"test": 1})

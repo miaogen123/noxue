@@ -17,7 +17,15 @@ func init() {
 	err := ormgo.Init(config.Config.Db.Url, config.Config.Db.DbName, false, time.Second*30)
 	utils.CheckErr(err)
 
-	ormgo.UseSoftDelete(&model.User{}, &model.Auth{}, &model.Article{}, &model.Blog{}, &model.Course{}, &model.CourseItem{})
+	ormgo.UseSoftDelete(
+		&model.User{},
+		&model.Auth{},
+		&model.Article{},
+		&model.Blog{},
+		&model.Course{},
+		&model.CourseItem{},
+		&model.Ad{},
+	)
 
 	ormgo.SessionExec(func(database *mgo.Database) {
 		index := mgo.Index{

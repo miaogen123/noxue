@@ -10,6 +10,7 @@ import (
 	"gopkg.in/noxue/ormgo.v1"
 	"noxue/model"
 	"noxue/utils"
+	"time"
 )
 
 var AdDao *AdDaoType
@@ -41,18 +42,19 @@ func (AdDaoType) AdInsert(name, title, content string, visible bool) (err error)
 	ad.Title = title
 	ad.Content = content
 	ad.Visible = visible
+	ad.Time.CreatedAt = time.Now().UTC()
 	return ad.Save()
 }
 
 //广告查找
 func (AdDaoType) AdSelect(condition ormgo.M, fields map[string]bool, sorts []string, page, size int) (Ads []model.Ad, err error) {
-	queryResuls := ormgo.Query{
+	query := ormgo.Query{
 		Condition:  condition,
 		SortFields: sorts,
 		Selector:   fields,
 		Skip:       (page - 1) * size,
 	}
-	err = ormgo.FindAll(queryResuls, &Ads)
+	err = ormgo.FindAll(query, &Ads)
 	return
 }
 
@@ -90,13 +92,13 @@ func (AdDaoType) AdEditById(id string, ad *model.Ad) (err error) {
 
 	ad.SetDoc(ad)
 	err = ad.UpdateId(id, ormgo.M{
-		"name":    ad.Name,
-		"title":   ad.Title,
-		"content": ad.Content,
-		"visible": ad.Visible,
+		"name":      ad.Name,
+		"title":     ad.Title,
+		"content":   ad.Content,
+		"visible":   ad.Visible,
+		"updatedat": time.Now().UTC(),
 	})
 	return
-
 }
 
 //统计广告个数

@@ -5,8 +5,10 @@
 package v1
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"noxue/dao"
+	"gopkg.in/noxue/ormgo.v1"
 	"noxue/model"
 	"noxue/srv"
 	"noxue/utils"
@@ -41,7 +43,7 @@ func (AdApi) AdCreate(c *gin.Context) {
 	ad.Title = adInfo.Title
 	ad.Visible = adInfo.Visible
 	err = srv.SrvAd.AdAdd(ad)
-	utils.CheckErr(err)
+	utils.CheckApiError(500, -1, err)
 
 	c.JSON(200, gin.H{
 		"status": 0,
@@ -51,8 +53,89 @@ func (AdApi) AdCreate(c *gin.Context) {
 }
 
 //获取一个广告
+func (AdApi) AdGetOne(c *gin.Context) {
+	defer func() {
+		if e := recover(); e != nil {
+			CheckError(c, e)
+		}
+	}()
+	adId := c.Param("id")
+	if adId == "" {
+		utils.CheckApiError(422, -1, errors.New("请求未包含ID"))
+	}
+	ad, err := srv.SrvAd.AdFindById(adId)
+	utils.CheckApiError(500, -1, err)
+	c.JSON(200, gin.H{
+		"ad": ad,
+	})
+
+}
 
 //获取广告List
+func (AdApi) AdGetList(c *gin.Context) {
+	defer func() {
+		if e := recover(); e != nil {
+			CheckError(c, e)
+		}
+	}()
+	fieldsValue := c.Query("fieldsvalue")
+	if fieldsValue != "" {
+		ApiAd.AdGetByFields(c)
+		return
+	}
+	sort, field, filter, _, _, _, err := utils.ParseSelectParam(c)
+	utils.CheckApiError(400, -1, err)
+	ads, err := srv.SrvAd.AdSelect(filter, field, sort)
+	utils.CheckApiError(500, -1, err)
+
+	c.JSON(200, gin.H{
+		"ads": ads,
+	})
+}
+
+//获取广告-限定字段内的多个值
+func (AdApi) AdGetByFields(c *gin.Context) {
+	defer func() {
+		if e := recover(); e != nil {
+			CheckError(c, e)
+		}
+	}()
+
+	filter, err := utils.ParseFilterParams(c)
+	utils.CheckApiError(422, -1, err)
+
+	fmt.Print(filter)
+	if len(filter) != 1 {
+		err := errors.New("请求中未包含或者未只包含一个字段")
+		panic(err)
+	}
+
+	var ads []model.Ad
+	existFlag := make(map[string]bool)
+	for field, key := range filter {
+		if field == "id" {
+			for _, val := range key {
+				ad, err := srv.SrvAd.AdFindById(val)
+				utils.CheckApiError(500, -1, err)
+				ads = append(ads, ad)
+			}
+		} else {
+			for _, val := range key {
+				adsFromQuery, err := srv.SrvAd.AdSelect(ormgo.M{field: val}, nil, nil)
+				utils.CheckApiError(500, -1, err)
+				for _, ad := range adsFromQuery {
+					if _, ok := existFlag[ad.Name]; !ok {
+						ads = append(ads, ad)
+					}
+				}
+			}
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"ads": ads,
+	})
+}
 
 //更新广告
 func (AdApi) AdUpdate(c *gin.Context) {
@@ -63,7 +146,8 @@ func (AdApi) AdUpdate(c *gin.Context) {
 	}()
 	adId := c.Param("id")
 	if adId == "" {
-		panic("请求未携带ID")
+		err := errors.New("请求更新的广告ID为空")
+		utils.CheckApiError(422, -1, err)
 	}
 
 	exists, err := srv.SrvAd.AdExistsOfId(adId)
@@ -82,7 +166,7 @@ func (AdApi) AdUpdate(c *gin.Context) {
 	ad.Title = adInfo.Title
 	ad.Visible = adInfo.Visible
 	err = srv.SrvAd.AdUpdateById(adId, &ad)
-	utils.CheckErr(err)
+	utils.CheckApiError(500, -1, err)
 
 	c.JSON(200, gin.H{
 		"status": 0,
@@ -91,7 +175,7 @@ func (AdApi) AdUpdate(c *gin.Context) {
 
 }
 
-//删除广告
+//删除广告 -- 不再使用
 func (AdApi) AdRemoveById(c *gin.Context) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -103,10 +187,39 @@ func (AdApi) AdRemoveById(c *gin.Context) {
 		panic("请求未携带ID")
 	}
 
-	err := dao.AdDao.AdRemoveById(adId, true)
+	err := srv.SrvAd.AdRemoveById(adId)
 	utils.CheckApiError(410, -1, err)
 	c.JSON(200, gin.H{
 		"status": 0,
 		"msg":    "删除成功",
 	})
+}
+
+//删除多个广告
+func (AdApi) AdRemoveByIds(c *gin.Context) {
+	defer func() {
+		if e := recover(); e != nil {
+			CheckError(c, e)
+		}
+	}()
+
+	filter, err := utils.ParseFilterParams(c)
+	utils.CheckApiError(422, -1, err)
+	fmt.Print(filter)
+	if len(filter) != 1 {
+		err := errors.New("请求中未包含或者未只包含一个字段")
+		panic(err)
+	}
+
+	for _, key := range filter {
+		for _, val := range key {
+			err := srv.SrvAd.AdRemoveById(val)
+			utils.CheckApiError(500, -1, err)
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"msg": "删除成功",
+	})
+
 }
